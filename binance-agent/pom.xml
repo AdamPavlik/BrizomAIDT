@@ -44,6 +44,11 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>io.github.binance</groupId>
+            <artifactId>binance-connector-java</artifactId>
+            <version>3.3.0</version>
+        </dependency>
     </dependencies>
 
     <build>
