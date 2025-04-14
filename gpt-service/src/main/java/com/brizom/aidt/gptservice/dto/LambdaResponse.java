@@ -1,4 +1,4 @@
-package com.brizom.aidt.binanceservice.dto;
+package com.brizom.aidt.gptservice.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class BinanceResponse {
+public class LambdaResponse {
     private String status;
     private Object data;
 }

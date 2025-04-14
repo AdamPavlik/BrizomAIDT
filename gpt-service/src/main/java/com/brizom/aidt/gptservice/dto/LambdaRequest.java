@@ -1,4 +1,4 @@
-package com.brizom.aidt.binanceservice.dto;
+package com.brizom.aidt.gptservice.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,7 +11,7 @@ import java.util.Map;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class BinanceRequest {
+public class LambdaRequest {
     private String action;
     private Map<String, Object> parameters;
 }
