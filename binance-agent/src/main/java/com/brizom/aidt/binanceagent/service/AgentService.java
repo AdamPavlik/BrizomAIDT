@@ -19,12 +19,6 @@ public class AgentService {
 
     private final SpotClient client;
 
-
-    public void init() {
-        Order sell = Order.builder().type(OrderType.MARKET).symbol("BNBUSDT").side(OrderSide.SELL).quantity(0.01).build();   //  BNB amount to sell
-        Order buy = Order.builder().type(OrderType.MARKET).symbol("BNBUSDT").side(OrderSide.BUY).quoteOrderQty(0.01).build();   // USDT spend to buy
-    }
-
     public void newMarketOrder(Order order) {
         log.info("New market order: {}", order);
         Map<String, Object> parameters = new LinkedHashMap<>();
@@ -48,8 +42,7 @@ public class AgentService {
             // For non-market orders, use quantity
             parameters.put("quantity", order.getQuantity());
         }
-
-        String result = client.createTrade().testNewOrder(parameters);
+        String result = client.createTrade().newOrder(parameters);
         log.info("New market order result: {}", result);
     }
 
