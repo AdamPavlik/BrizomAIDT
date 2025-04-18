@@ -21,7 +21,7 @@ import java.util.Optional;
 public class ProcessingService {
 
     private static final String QUOTE_ASSET = "USDT";
-    private static final BigDecimal BUY_ALLOCATION = BigDecimal.valueOf(0.10);
+    private static final BigDecimal BUY_ALLOCATION = BigDecimal.valueOf(0.20);
     private static final BigDecimal SELL_ALLOCATION = BigDecimal.ONE;
 
     private final BinanceService binanceService;
