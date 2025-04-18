@@ -12,8 +12,8 @@ import com.brizom.aidt.gptservice.util.PromptMaker;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.openai.client.OpenAIClient;
-import com.openai.models.ChatCompletionReasoningEffort;
 import com.openai.models.ChatModel;
+import com.openai.models.ReasoningEffort;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -43,7 +43,7 @@ public class GPTService {
 
         getPromptsFromBinance(prompts, targetedCoins);
 
-        val createParams = gptUtils.buildChatCompletionParams(ChatModel.O3_MINI, ChatCompletionReasoningEffort.LOW, 16000, targetedCoins, prompts);
+        val createParams = gptUtils.buildChatCompletionParams(ChatModel.O3, ReasoningEffort.HIGH, 32000, targetedCoins, prompts);
         val choices = client.chat().completions().create(createParams).choices();
         val choice = choices.stream().findAny().orElseThrow(() -> new AIException("No response from GPT"));
         val content = choice.message().content().stream().findAny().orElseThrow(() -> new AIException("No content from GPT"));

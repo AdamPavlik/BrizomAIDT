@@ -3,7 +3,10 @@ package com.brizom.aidt.gptservice.util;
 import com.brizom.aidt.gptservice.model.Coin;
 import com.brizom.aidt.gptservice.model.Prompt;
 import com.openai.core.JsonValue;
-import com.openai.models.*;
+import com.openai.models.ChatModel;
+import com.openai.models.ReasoningEffort;
+import com.openai.models.ResponseFormatJsonSchema;
+import com.openai.models.chat.completions.*;
 import lombok.val;
 import org.springframework.stereotype.Service;
 
@@ -61,9 +64,7 @@ public class GPTUtils {
     }
 
 
-    
-    
-    public ChatCompletionCreateParams buildChatCompletionParams(ChatModel model, ChatCompletionReasoningEffort effort, int maxTokens, List<Coin> coins, List<Prompt> prompts) {
+    public ChatCompletionCreateParams buildChatCompletionParams(ChatModel model, ReasoningEffort effort, int maxTokens, List<Coin> coins, List<Prompt> prompts) {
         val createParams = ChatCompletionCreateParams.builder()
                 .model(model)
                 .reasoningEffort(effort)
