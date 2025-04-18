@@ -21,7 +21,8 @@ import java.util.Optional;
 public class ProcessingService {
 
     private static final String QUOTE_ASSET = "USDT";
-    private static final BigDecimal ALLOCATION = BigDecimal.valueOf(0.10);
+    private static final BigDecimal BUY_ALLOCATION = BigDecimal.valueOf(0.10);
+    private static final BigDecimal SELL_ALLOCATION = BigDecimal.ONE;
 
     private final BinanceService binanceService;
 
@@ -61,7 +62,7 @@ public class ProcessingService {
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("NOTIONAL missing for " + symbol));
 
-        BigDecimal amountQuoteAsset = freeQuoteAsset.multiply(ALLOCATION).setScale(2, RoundingMode.DOWN);
+        BigDecimal amountQuoteAsset = freeQuoteAsset.multiply(BUY_ALLOCATION).setScale(2, RoundingMode.DOWN);
 
         if (amountQuoteAsset.compareTo(minNotional) < 0) {
             if (freeQuoteAsset.compareTo(minNotional) >= 0) {
@@ -93,7 +94,7 @@ public class ProcessingService {
             return Optional.empty();
         }
 
-        BigDecimal rawQty = freeBase.multiply(ALLOCATION);
+        BigDecimal rawQty = freeBase.multiply(SELL_ALLOCATION);
 
         Filter lot = exchangeInfo.getSymbols().stream()
                 .filter(exchangeSymbol -> symbol.equalsIgnoreCase(exchangeSymbol.getSymbol()))
