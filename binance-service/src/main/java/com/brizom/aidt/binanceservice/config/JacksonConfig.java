@@ -3,6 +3,7 @@ package com.brizom.aidt.binanceservice.config;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.google.gson.Gson;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -17,6 +18,11 @@ public class JacksonConfig {
         mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, true);
 
         return mapper;
+    }
+
+    @Bean
+    public Gson gson() {
+        return new Gson();
     }
 
 }
