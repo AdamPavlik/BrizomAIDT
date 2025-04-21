@@ -36,6 +36,7 @@ public class GPTService {
     private final CoinRepository coinRepository;
     private final BinanceService binanceService;
     private final SQSService sqsService;
+    private final SesService sesService;
 
     public Signals generateSignals() {
         val targetedCoins = coinRepository.findAll();
@@ -51,6 +52,7 @@ public class GPTService {
         try {
             Signals signals = objectMapper.readValue(content, Signals.class);
             sqsService.sendSignalMessages(signals);
+            sesService.sendSignalsEmails(signals);
             return signals;
         } catch (JsonProcessingException e) {
             log.error("Failed to convert signals to JSON", e);
