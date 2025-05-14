@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAttribute;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondaryPartitionKey;
 
 @Data
 @DynamoDbBean
@@ -17,8 +18,10 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbParti
 public class Prompt {
 
     private String id;
+    private String userId;
     private String prompt;
     private PromptRole role;
+    private boolean enabled;
 
     @DynamoDbPartitionKey
     public String getId() {
@@ -35,5 +38,13 @@ public class Prompt {
         return role;
     }
 
+    @DynamoDbSecondaryPartitionKey(indexNames = "userId-index")
+    public String getUserId() {
+        return userId;
+    }
 
+    @DynamoDbAttribute("enabled")
+    public boolean isEnabled() {
+        return enabled;
+    }
 }

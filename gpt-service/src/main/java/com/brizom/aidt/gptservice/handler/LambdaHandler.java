@@ -1,22 +1,35 @@
 package com.brizom.aidt.gptservice.handler;
 
-import com.brizom.aidt.gptservice.dto.Signals;
+import com.amazonaws.services.lambda.runtime.events.SQSEvent;
+import com.brizom.aidt.gptservice.dto.KickoffEvent;
 import com.brizom.aidt.gptservice.service.GPTService;
+import com.google.gson.Gson;
 import lombok.AllArgsConstructor;
+import lombok.val;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.function.Supplier;
+import java.util.function.Consumer;
 
 @Configuration
 @AllArgsConstructor
 public class LambdaHandler {
 
     private final GPTService gptService;
+    private final Gson gson;
 
     @Bean
-    public Supplier<Signals> signals() {
-        return gptService::generateSignals;
+    public Consumer<SQSEvent> moderate() {
+        return event -> {
+            event.getRecords().forEach(r -> {
+                try {
+                    val kickoffEvent = gson.fromJson(r.getBody(), KickoffEvent.class);
+                    gptService.generateSignals(kickoffEvent.getSetting(), kickoffEvent.getCoins());
+                } catch (Exception ex) {
+                    throw new RuntimeException(ex);
+                }
+            });
+        };
     }
 
 }

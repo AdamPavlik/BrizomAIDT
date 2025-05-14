@@ -13,6 +13,9 @@ public class PromptMaker {
 
 
     public static String accountSnapshot(AccountSnapshot account) {
+        if (account == null || account.getSnapshotVos() == null || account.getSnapshotVos().isEmpty()) {
+            return "";
+        }
         val builder = new StringBuilder();
         account.getSnapshotVos().stream()
                 .max(Comparator.comparing(Snapshot::getUpdateTime))

@@ -1,7 +1,7 @@
 package com.brizom.aidt.binanceagent.handler;
 
 import com.amazonaws.services.lambda.runtime.events.SQSEvent;
-import com.brizom.aidt.binanceagent.dto.Order;
+import com.brizom.aidt.binanceagent.dto.OrderEvent;
 import com.brizom.aidt.binanceagent.service.AgentService;
 import com.google.gson.Gson;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +22,7 @@ public class LambdaHandler {
         return event -> {
             event.getRecords().forEach(r -> {
                 try {
-                    agentService.newMarketOrder(gson.fromJson(r.getBody(), Order.class));
+                    agentService.newMarketOrder(gson.fromJson(r.getBody(), OrderEvent.class));
                 } catch (Exception ex) {
                     throw new RuntimeException(ex);
                 }

@@ -1,4 +1,4 @@
-package com.brizom.aidt.gptservice.model;
+package com.brizom.aidt.binanceagent.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,22 +9,28 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 
 @Data
+@DynamoDbBean
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@DynamoDbBean
-public class Coin {
+public class Credentials {
 
-    private String id;
-    private String symbol;
+    private String userId;
+    private String binanceKey;
+    private String binanceSecretKey;
 
     @DynamoDbPartitionKey
-    public String getId() {
-        return id;
+    public String getUserId() {
+        return userId;
     }
 
-    @DynamoDbAttribute("symbol")
-    public String getSymbol() {
-        return symbol;
+    @DynamoDbAttribute("binanceKey")
+    public String getBinanceKey() {
+        return binanceKey;
+    }
+
+    @DynamoDbAttribute("binanceSecretKey")
+    public String getBinanceSecretKey() {
+        return binanceSecretKey;
     }
 }

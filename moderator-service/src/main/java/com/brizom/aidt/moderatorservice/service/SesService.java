@@ -1,6 +1,7 @@
-package com.brizom.aidt.gptservice.service;
+package com.brizom.aidt.moderatorservice.service;
 
-import com.brizom.aidt.gptservice.dto.Signals;
+import com.brizom.aidt.moderatorservice.dto.Signal;
+import com.brizom.aidt.moderatorservice.dto.Signals;
 import com.google.gson.Gson;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
@@ -19,24 +20,19 @@ public class SesService {
     @Value("${aws.ses.signals.from.address}")
     private String fromAddress;
 
-    @Value("${aws.ses.signals.to.address}")
-    private List<String> toAddresses;
-
     @Value("${aws.ses.signals.template}")
     private String template;
 
     public final SesClient ses;
     public final Gson gson;
 
-
-    public void sendSignalsEmails(Signals signals) {
+    public void sendSignalsEmails(List<Signal> signals, String... toAddresses) {
         val request = SendTemplatedEmailRequest.builder()
                 .source(fromAddress)
                 .destination(Destination.builder().toAddresses(toAddresses).build())
                 .template(template)
-                .templateData(gson.toJson(signals))
+                .templateData(gson.toJson(Signals.builder().signals(signals).build()))
                 .build();
-
         ses.sendTemplatedEmail(request);
     }
 }

@@ -27,6 +27,7 @@
         <module>binance-service</module>
         <module>moderator-service</module>
         <module>binance-agent</module>
+        <module>kickoff-service</module>
     </modules>
 
     <dependencies>

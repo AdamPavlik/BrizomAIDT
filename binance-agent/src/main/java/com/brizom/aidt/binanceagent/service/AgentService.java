@@ -2,48 +2,73 @@ package com.brizom.aidt.binanceagent.service;
 
 
 import com.binance.connector.client.SpotClient;
-import com.brizom.aidt.binanceagent.dto.Order;
+import com.binance.connector.client.enums.DefaultUrls;
+import com.binance.connector.client.impl.SpotClientImpl;
+import com.binance.connector.client.utils.signaturegenerator.HmacSignatureGenerator;
+import com.brizom.aidt.binanceagent.dto.OrderEvent;
 import com.brizom.aidt.binanceagent.dto.OrderSide;
 import com.brizom.aidt.binanceagent.dto.OrderType;
+import com.brizom.aidt.binanceagent.model.Credentials;
+import com.brizom.aidt.binanceagent.repository.CredentialsRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 @AllArgsConstructor
 @Slf4j
 public class AgentService {
 
-    private final SpotClient client;
+    private final CredentialsRepository credentialsRepository;
 
-    public void newMarketOrder(Order order) {
-        log.info("New market order: {}", order);
-        Map<String, Object> parameters = new LinkedHashMap<>();
-        parameters.put("symbol", order.getSymbol());
-        parameters.put("side", order.getSide().name());
-        parameters.put("type", order.getType().name());
-        // Handle MARKET orders correctly
-        if (order.getType() == OrderType.MARKET) {
-            if (order.getSide() == OrderSide.BUY) {
-                if (order.getQuoteOrderQty() == null) {
-                    throw new IllegalArgumentException("Market BUY order requires quoteOrderQty");
+    public void newMarketOrder(OrderEvent orderEvent) {
+        if (!orderEvent.getSetting().isExecuteOrders()) {
+            return;
+        }
+        SpotClient client = initPrivateClient(orderEvent.getSetting().getUserId())
+                .orElseThrow(() -> new IllegalArgumentException("No credentials found for user " + orderEvent.getSetting().getUserId()));
+        orderEvent.getOrders().forEach(order -> {
+            log.info("New market order: {}", order);
+            Map<String, Object> parameters = new LinkedHashMap<>();
+            parameters.put("symbol", order.getSymbol());
+            parameters.put("side", order.getSide().name());
+            parameters.put("type", order.getType().name());
+            // Handle MARKET orders correctly
+            if (order.getType() == OrderType.MARKET) {
+                if (order.getSide() == OrderSide.BUY) {
+                    if (order.getQuoteOrderQty() == null) {
+                        throw new IllegalArgumentException("Market BUY order requires quoteOrderQty");
+                    }
+                    parameters.put("quoteOrderQty", order.getQuoteOrderQty());
+                } else {
+                    if (order.getQuantity() == null) {
+                        throw new IllegalArgumentException("Market SELL order requires quantity");
+                    }
+                    parameters.put("quantity", order.getQuantity());
                 }
-                parameters.put("quoteOrderQty", order.getQuoteOrderQty());
             } else {
-                if (order.getQuantity() == null) {
-                    throw new IllegalArgumentException("Market SELL order requires quantity");
-                }
+                // For non-market orders, use quantity
                 parameters.put("quantity", order.getQuantity());
             }
-        } else {
-            // For non-market orders, use quantity
-            parameters.put("quantity", order.getQuantity());
+            log.info("New market order parameters: {}", parameters);
+            String result = client.createTrade().newOrder(parameters);
+            log.info("New market order result: {}", result);
+        });
+
+
+    }
+
+    private Optional<SpotClient> initPrivateClient(String userId) {
+        Optional<Credentials> credentials = credentialsRepository.queryByUserId(userId);
+        if (credentials.isPresent()) {
+            HmacSignatureGenerator signGenerator = new HmacSignatureGenerator(credentials.get().getBinanceSecretKey());
+            return Optional.of(new SpotClientImpl(credentials.get().getBinanceKey(), signGenerator, DefaultUrls.PROD_URL));
         }
-        String result = client.createTrade().newOrder(parameters);
-        log.info("New market order result: {}", result);
+        return Optional.empty();
     }
 
 

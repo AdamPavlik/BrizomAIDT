@@ -26,9 +26,10 @@ public class BinanceService {
     private final LambdaClient lambdaClient;
     private final Gson gson;
 
-    public AccountSnapshot getAccountSnapshot() {
+    public AccountSnapshot getAccountSnapshot(String userId) {
         val invokeRequest = InvokeRequest.builder()
                 .functionName(accountSnapshotFunction)
+                .payload(SdkBytes.fromUtf8String(gson.toJson(userId)))
                 .build();
         val invokeResponse = lambdaClient.invoke(invokeRequest);
         return gson.fromJson(invokeResponse.payload().asUtf8String(), AccountSnapshot.class);

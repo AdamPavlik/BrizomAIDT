@@ -1,6 +1,9 @@
 package com.brizom.aidt.gptservice.util;
 
-import com.brizom.aidt.gptservice.model.Coin;
+import com.brizom.aidt.gptservice.dto.Coin;
+import com.brizom.aidt.gptservice.dto.Setting;
+import com.brizom.aidt.gptservice.dto.enums.AIModel;
+import com.brizom.aidt.gptservice.dto.enums.Effort;
 import com.brizom.aidt.gptservice.model.Prompt;
 import com.openai.core.JsonValue;
 import com.openai.models.ChatModel;
@@ -64,11 +67,11 @@ public class GPTUtils {
     }
 
 
-    public ChatCompletionCreateParams buildChatCompletionParams(ChatModel model, ReasoningEffort effort, int maxTokens, List<Coin> coins, List<Prompt> prompts) {
+    public ChatCompletionCreateParams buildChatCompletionParams(Setting setting, List<Coin> coins, List<Prompt> prompts) {
         val createParams = ChatCompletionCreateParams.builder()
-                .model(model)
-                .reasoningEffort(effort)
-                .maxCompletionTokens(maxTokens)
+                .model(getChatModel(setting.getAiModel()))
+                .reasoningEffort(reasoningEffort(setting.getEffort()))
+                .maxCompletionTokens(setting.getMaxTokens())
                 .responseFormat(buildResponseFormat(coins));
         addGenericPrompts(createParams, prompts);
         addTargetedCoins(createParams, coins);
@@ -105,5 +108,21 @@ public class GPTUtils {
                         .build())
                 .build();
     }
+
+    private ChatModel getChatModel(AIModel model) {
+        return switch (model) {
+            case O3 -> ChatModel.O3;
+            case O4_MINI -> ChatModel.O4_MINI;
+        };
+    }
+
+    private ReasoningEffort reasoningEffort(Effort effort) {
+        return switch (effort) {
+            case LOW -> ReasoningEffort.LOW;
+            case MEDIUM -> ReasoningEffort.MEDIUM;
+            case HEIGH -> ReasoningEffort.HIGH;
+        };
+    }
+
 
 }

@@ -1,6 +1,6 @@
 package com.brizom.aidt.moderatorservice.service;
 
-import com.brizom.aidt.moderatorservice.dto.Order;
+import com.brizom.aidt.moderatorservice.dto.OrderEvent;
 import com.google.gson.Gson;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,7 +18,7 @@ public class SQSService {
     private final SqsClient sqsClient;
     private final Gson gson;
 
-    public void sendOrder(Order order) {
+    public void sendOrder(OrderEvent order) {
         sqsClient.sendMessage(SendMessageRequest.builder()
                 .queueUrl(ordersQueueUrl)
                 .messageBody(gson.toJson(order))

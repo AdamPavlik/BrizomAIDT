@@ -10,7 +10,6 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.List;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 @Configuration
 @AllArgsConstructor
@@ -18,8 +17,9 @@ public class LambdaHandler {
 
     private final BinanceService binanceService;
 
+
     @Bean
-    public Supplier<AccountSnapshot> accountSnapshot() {
+    public Function<String, AccountSnapshot> accountSnapshot() {
         return binanceService::getAccountSnapshot;
     }
 

@@ -1,26 +1,26 @@
 package com.brizom.aidt.gptservice.service;
 
+import com.brizom.aidt.gptservice.dto.Coin;
+import com.brizom.aidt.gptservice.dto.Setting;
 import com.brizom.aidt.gptservice.dto.Signals;
 import com.brizom.aidt.gptservice.exception.AIException;
-import com.brizom.aidt.gptservice.model.Coin;
 import com.brizom.aidt.gptservice.model.Prompt;
 import com.brizom.aidt.gptservice.model.enums.PromptRole;
-import com.brizom.aidt.gptservice.repository.CoinRepository;
 import com.brizom.aidt.gptservice.repository.PromptRepository;
 import com.brizom.aidt.gptservice.util.GPTUtils;
 import com.brizom.aidt.gptservice.util.PromptMaker;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.openai.client.OpenAIClient;
-import com.openai.models.ChatModel;
-import com.openai.models.ReasoningEffort;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import org.apache.logging.log4j.util.Strings;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
@@ -33,48 +33,55 @@ public class GPTService {
     private final GPTUtils gptUtils;
     private final ObjectMapper objectMapper;
     private final PromptRepository promptRepository;
-    private final CoinRepository coinRepository;
     private final BinanceService binanceService;
     private final SQSService sqsService;
-    private final SesService sesService;
 
-    public Signals generateSignals() {
-        val targetedCoins = coinRepository.findAll();
-        val prompts = new ArrayList<>(promptRepository.findAll());
+    public void generateSignals(Setting setting, List<Coin> coins) {
+        val targetedCoins = coins.stream().filter(Coin::isGenerateSignal).toList();
 
-        getPromptsFromBinance(prompts, targetedCoins);
+        val prompts = new ArrayList<>(promptRepository.queryByUserId(setting.getUserId()).stream().filter(Prompt::isEnabled).toList());
 
-        val createParams = gptUtils.buildChatCompletionParams(ChatModel.O3, ReasoningEffort.HIGH, 32000, targetedCoins, prompts);
+        getPromptsFromBinance(prompts, targetedCoins, setting);
+
+        val createParams = gptUtils.buildChatCompletionParams(setting, targetedCoins, prompts);
         val choices = client.chat().completions().create(createParams).choices();
         val choice = choices.stream().findAny().orElseThrow(() -> new AIException("No response from GPT"));
         val content = choice.message().content().stream().findAny().orElseThrow(() -> new AIException("No content from GPT"));
 
         try {
             Signals signals = objectMapper.readValue(content, Signals.class);
+            signals.setSetting(setting);
+            signals.setCoins(targetedCoins);
             sqsService.sendSignalMessages(signals);
-            sesService.sendSignalsEmails(signals);
-            return signals;
         } catch (JsonProcessingException e) {
             log.error("Failed to convert signals to JSON", e);
             throw new AIException("Cannot parse structured response", e);
         }
     }
 
-    private void getPromptsFromBinance(List<Prompt> prompts, List<Coin> coins) {
-        CompletableFuture<Prompt> snapshotFuture = CompletableFuture.supplyAsync(() ->
-                Prompt.builder()
-                        .prompt(PromptMaker.accountSnapshot(binanceService.getAccountSnapshot()))
-                        .role(PromptRole.USER)
-                        .build());
+    private void getPromptsFromBinance(List<Prompt> prompts, List<Coin> coins, Setting setting) {
+        CompletableFuture<Prompt> snapshotFuture = null;
+        CompletableFuture<Prompt> tickerFuture = null;
 
-        CompletableFuture<Prompt> tickerFuture = CompletableFuture.supplyAsync(() ->
-                Prompt.builder()
-                        .prompt(PromptMaker.ticker24H(binanceService.getTicker24H(coins.stream().map(Coin::getSymbol).map(coin  -> coin + "USDT").toList())))
-                        .role(PromptRole.USER)
-                        .build());
+        if (setting.isIncludeBalances()) {
+            snapshotFuture = CompletableFuture.supplyAsync(() ->
+                    Prompt.builder()
+                            .prompt(PromptMaker.accountSnapshot(binanceService.getAccountSnapshot(setting.getUserId())))
+                            .role(PromptRole.USER)
+                            .build());
+        }
+        if (setting.isIncludeLiveData()) {
+            tickerFuture = CompletableFuture.supplyAsync(() ->
+                    Prompt.builder()
+                            .prompt(PromptMaker.ticker24H(binanceService.getTicker24H(coins.stream().map(Coin::getSymbol).map(coin -> coin + setting.getStableCoin()).toList())))
+                            .role(PromptRole.USER)
+                            .build());
+        }
 
         prompts.addAll(Stream.of(snapshotFuture, tickerFuture)
+                .filter(Objects::nonNull)
                 .map(CompletableFuture::join)
+                .filter(prompt -> !Strings.isBlank(prompt.getPrompt()))
                 .toList());
     }
 

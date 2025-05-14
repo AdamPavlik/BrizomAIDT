@@ -9,6 +9,7 @@
         <option value="$PROJECT_DIR$/binance-service/pom.xml" />
         <option value="$PROJECT_DIR$/moderator-service/pom.xml" />
         <option value="$PROJECT_DIR$/binance-agent/pom.xml" />
+        <option value="$PROJECT_DIR$/kickoff-service/pom.xml" />
       </list>
     </option>
   </component>
