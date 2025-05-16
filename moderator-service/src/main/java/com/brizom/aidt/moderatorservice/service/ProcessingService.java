@@ -9,6 +9,7 @@ import com.brizom.aidt.moderatorservice.dto.exchange.Filter;
 import com.brizom.aidt.moderatorservice.repository.OrderHistoryRepository;
 import com.brizom.aidt.moderatorservice.repository.SignalHistoryRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +21,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ProcessingService {
 
     private static final BigDecimal BUY_ALLOCATION = BigDecimal.valueOf(0.20);
@@ -32,14 +34,19 @@ public class ProcessingService {
     private final SignalHistoryRepository signalHistoryRepository;
 
     public void processSignalEvent(Signals signalsWrapper) {
+        log.info("Received signal event: {}", signalsWrapper);
         val signals = signalsWrapper.getSignals();
         val setting = signalsWrapper.getSetting();
         val coinsMap = signalsWrapper.getCoins().stream().collect(Collectors.toMap(Coin::getSymbol, Function.identity()));
 
+        log.info("Processing {} signals for user {}", signals.size(), setting.getUserId());
         signalHistoryRepository.storeSignals(signals, setting.getUserId());
+        log.info("Stored {} signals for user {}", signals.size(), setting.getUserId());
         sendSignalsEmails(signals, setting, coinsMap);
+        log.info("Sent signal emails for user {}", setting.getUserId());
 
         if (setting.isExecuteOrders()) {
+            log.info("Executing orders for user {}", setting.getUserId());
             overwriteHoldOption(signals, signalsWrapper.getSetting().getOnHoldAction());
             val actionSignals = signals.stream()
                     .filter(signal -> !Action.HOLD.equals(signal.getAction()))
@@ -65,15 +72,21 @@ public class ProcessingService {
                 });
 
                 if (!orders.isEmpty()) {
+                    log.info("Executing {} orders for user {}", orders.size(), setting.getUserId());
                     orderHistoryRepository.storeOrders(orders, setting.getUserId());
+                    log.info("Stored {} orders for user {}", orders.size(), setting.getUserId());
                     val orderEvent = OrderEvent.builder()
                             .setting(setting)
                             .orders(orders)
                             .build();
+                    log.info("Sending order event: {}", orderEvent);
                     sqsService.sendOrder(orderEvent);
+                    log.info("Sent order event: {}", orderEvent);
                 }
 
             }
+        } else {
+            log.info("Not executing orders for user {}", setting.getUserId());
         }
 
 
