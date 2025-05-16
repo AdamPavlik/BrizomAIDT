@@ -23,20 +23,24 @@ public class KickoffService {
     public String kickOff() {
         log.info("Kickoff triggered");
         settingRepository.queryKickOffSettings().stream().forEach(settingPage -> settingPage.items().forEach(setting -> {
-            log.info("Found setting for user: {}", setting.getUserId());
-            if (!setting.isGenerateSignals()) {
-                log.info("Setting is not generate signals, skipping: {}", setting.getUserId());
-                return;
-            }
-            List<Coin> coins = coinRepository.queryCoins(setting.getUserId()).stream().flatMap(coinPage -> coinPage.items().stream()).toList();
-            if (coins.isEmpty()) {
-                log.info("No coins found for user: {}", setting.getUserId());
-                return;
-            }
-            KickoffEvent event = KickoffEvent.builder().setting(setting).coins(coins).build();
-            if (AIProvider.GPT.equals(setting.getAiProvider())) {
-                log.info("Sending GPT message to SQS: {}", event);
-                sqsService.sendMessage(event);
+            try {
+                log.info("Found setting for user: {}", setting.getUserId());
+                if (!setting.isGenerateSignals()) {
+                    log.info("Setting is not generate signals, skipping: {}", setting.getUserId());
+                    return;
+                }
+                List<Coin> coins = coinRepository.queryCoins(setting.getUserId()).stream().flatMap(coinPage -> coinPage.items().stream()).toList();
+                if (coins.isEmpty()) {
+                    log.info("No coins found for user: {}", setting.getUserId());
+                    return;
+                }
+                KickoffEvent event = KickoffEvent.builder().setting(setting).coins(coins).build();
+                if (AIProvider.GPT.equals(setting.getAiProvider())) {
+                    log.info("Sending GPT message to SQS: {}", event);
+                    sqsService.sendMessage(event);
+                }
+            } catch (Exception ex) {
+                log.error("Error while kicking off", ex);
             }
         }));
         return "Kickoff triggered";

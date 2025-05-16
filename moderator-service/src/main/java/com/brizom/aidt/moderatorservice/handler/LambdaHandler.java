@@ -5,6 +5,7 @@ import com.brizom.aidt.moderatorservice.dto.Signals;
 import com.brizom.aidt.moderatorservice.service.ProcessingService;
 import com.google.gson.Gson;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -12,6 +13,7 @@ import java.util.function.Consumer;
 
 @Configuration
 @RequiredArgsConstructor
+@Slf4j
 public class LambdaHandler {
 
     private final Gson gson;
@@ -24,7 +26,7 @@ public class LambdaHandler {
                 try {
                     processingService.processSignalEvent(gson.fromJson(r.getBody(), Signals.class));
                 } catch (Exception ex) {
-                    throw new RuntimeException(ex);
+                    log.error("Error processing event: {}", r.getBody(), ex);
                 }
             });
         };
