@@ -29,7 +29,7 @@ public class SQSService {
                 .messageBody(gson.toJson(signals))
                 .build();
         val response = sqsClient.sendMessage(request);
-        log.info("SQS batch result - {}}", response);
+        log.info("SQS result - {}}", response);
     }
 
 

@@ -54,8 +54,9 @@ public class ProcessingService {
                     .filter(signal -> (signal.getAction() == Action.BUY && signal.getConfidence() > setting.getConfidenceToBuy()) ||
                             (signal.getAction() == Action.SELL && signal.getConfidence() > setting.getConfidenceToSell()))
                     .toList();
-            val accountSnapshotResp = binanceService.getAccountSnapshot(setting.getUserId());
 
+            log.info("Found {} actionable signals for user {}, signals: {}", actionSignals.size(), setting.getUserId(), actionSignals);
+            val accountSnapshotResp = binanceService.getAccountSnapshot(setting.getUserId());
             if (accountSnapshotResp != null && accountSnapshotResp.getSnapshotVos() != null && !accountSnapshotResp.getSnapshotVos().isEmpty()) {
                 List<Order> orders = new ArrayList<>();
                 val symbols = actionSignals.stream().map(Signal::getCoin).map(coin -> coin + setting.getStableCoin()).toList();
@@ -84,6 +85,8 @@ public class ProcessingService {
                     log.info("Sent order event: {}", orderEvent);
                 }
 
+            } else {
+                log.warn("No account snapshot found for user {}", setting.getUserId());
             }
         } else {
             log.info("Not executing orders for user {}", setting.getUserId());
