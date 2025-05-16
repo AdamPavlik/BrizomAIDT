@@ -26,7 +26,9 @@ public class AgentService {
     private final CredentialsRepository credentialsRepository;
 
     public void newMarketOrder(OrderEvent orderEvent) {
+        log.info("New market order event: {}", orderEvent);
         if (!orderEvent.getSetting().isExecuteOrders()) {
+            log.info("New market order event ignored: {}", orderEvent);
             return;
         }
         SpotClient client = initPrivateClient(orderEvent.getSetting().getUserId())
@@ -41,17 +43,20 @@ public class AgentService {
             if (order.getType() == OrderType.MARKET) {
                 if (order.getSide() == OrderSide.BUY) {
                     if (order.getQuoteOrderQty() == null) {
+                        log.warn("Market BUY order missing quoteOrderQty, using quantity instead");
                         throw new IllegalArgumentException("Market BUY order requires quoteOrderQty");
                     }
                     parameters.put("quoteOrderQty", order.getQuoteOrderQty());
                 } else {
                     if (order.getQuantity() == null) {
+                        log.warn("Market SELL order missing quantity, using quantity instead");
                         throw new IllegalArgumentException("Market SELL order requires quantity");
                     }
                     parameters.put("quantity", order.getQuantity());
                 }
             } else {
                 // For non-market orders, use quantity
+                log.info("Using quantity for non-market order: {}", order);
                 parameters.put("quantity", order.getQuantity());
             }
             log.info("New market order parameters: {}", parameters);
@@ -63,6 +68,7 @@ public class AgentService {
     }
 
     private Optional<SpotClient> initPrivateClient(String userId) {
+        log.info("Initializing private client for user {}", userId);
         Optional<Credentials> credentials = credentialsRepository.queryByUserId(userId);
         if (credentials.isPresent()) {
             HmacSignatureGenerator signGenerator = new HmacSignatureGenerator(credentials.get().getBinanceSecretKey());

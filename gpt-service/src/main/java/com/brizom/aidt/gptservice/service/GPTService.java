@@ -37,11 +37,20 @@ public class GPTService {
     private final SQSService sqsService;
 
     public void generateSignals(Setting setting, List<Coin> coins) {
+        log.info("Generating signals for user {} with setting {}", setting.getUserId(), setting);
         val targetedCoins = coins.stream().filter(Coin::isGenerateSignal).toList();
-
+        log.info("Targeted coins: {}", targetedCoins);
         val prompts = new ArrayList<>(promptRepository.queryByUserId(setting.getUserId()).stream().filter(Prompt::isEnabled).toList());
+        log.info("Prompts from DB: {}", prompts);
+
+        if (prompts.isEmpty() || coins.isEmpty()) {
+            log.info("No prompts found for user {} or no coins to generate signals for", setting.getUserId());
+            return;
+        }
 
         getPromptsFromBinance(prompts, targetedCoins, setting);
+
+        log.info("All Prompts: {}", prompts);
 
         val createParams = gptUtils.buildChatCompletionParams(setting, targetedCoins, prompts);
         val choices = client.chat().completions().create(createParams).choices();
@@ -52,6 +61,7 @@ public class GPTService {
             Signals signals = objectMapper.readValue(content, Signals.class);
             signals.setSetting(setting);
             signals.setCoins(targetedCoins);
+            log.info("Generated signals: {}", signals);
             sqsService.sendSignalMessages(signals);
         } catch (JsonProcessingException e) {
             log.error("Failed to convert signals to JSON", e);
@@ -64,6 +74,7 @@ public class GPTService {
         CompletableFuture<Prompt> tickerFuture = null;
 
         if (setting.isIncludeBalances()) {
+            log.info("Generating account snapshot prompt");
             snapshotFuture = CompletableFuture.supplyAsync(() ->
                     Prompt.builder()
                             .prompt(PromptMaker.accountSnapshot(binanceService.getAccountSnapshot(setting.getUserId())))
@@ -71,6 +82,7 @@ public class GPTService {
                             .build());
         }
         if (setting.isIncludeLiveData()) {
+            log.info("Generating ticker24H prompt");
             tickerFuture = CompletableFuture.supplyAsync(() ->
                     Prompt.builder()
                             .prompt(PromptMaker.ticker24H(binanceService.getTicker24H(coins.stream().map(Coin::getSymbol).map(coin -> coin + setting.getStableCoin()).toList())))
