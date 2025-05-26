@@ -51,8 +51,8 @@ public class ProcessingService {
             val actionSignals = signals.stream()
                     .filter(signal -> !Action.HOLD.equals(signal.getAction()))
                     .filter(signal -> coinsMap.get(signal.getCoin()).isExecuteOrder())
-                    .filter(signal -> (signal.getAction() == Action.BUY && signal.getConfidence() > setting.getConfidenceToBuy()) ||
-                            (signal.getAction() == Action.SELL && signal.getConfidence() > setting.getConfidenceToSell()))
+                    .filter(signal -> (signal.getAction() == Action.BUY && signal.getConfidence() >= setting.getConfidenceToBuy()) ||
+                            (signal.getAction() == Action.SELL && signal.getConfidence() >= setting.getConfidenceToSell()))
                     .toList();
 
             log.info("Found {} actionable signals for user {}, signals: {}", actionSignals.size(), setting.getUserId(), actionSignals);
