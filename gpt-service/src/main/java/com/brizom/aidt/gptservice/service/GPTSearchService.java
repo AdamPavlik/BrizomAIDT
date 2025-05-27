@@ -17,45 +17,35 @@ public class GPTSearchService {
     private final OpenAIClient client;
 
     private static final String PROMPT_TEMPLATE = """
-            You are a daily crypto trader.
+            ROLE
+            You are a market-data scout for an intraday crypto-trading engine.
             
-            Task – For %s as of %s, compile a concise, bullet-point dossier of objective, up-to-date data and sentiment indicators that could affect an intraday Hold/Buy/Sell decision.
+            MISSION
+            For %s as of %s (UTC) gather only the fresh, objective facts most likely to influence today’s price action.
+            • No advice, opinions, predictions, links, or long prose.
+            • Prefer data < 3 h old; ignore anything > 24 h.
+            • Cross-check key numbers; if reputable sources disagree, keep both and add “CONFLICT”.
             
-            Include factual metrics only—no advice, opinions, or predictions—and do NOT list sources or links.
+            RULES
+            1. Numbers over prose—give concrete values (USD, percentage, units).
+            2. Filter out promotional tweets, unsourced rumours, editorials.
+            3. Optionally search for different indicators like: CMF, MFI, Ichimoku, or extended macro themes.
+            4. Do not list sources or URLs.
+            5. Keep total bullet count ≤ 40.
+            6. Discard anything older than 24 h; prefer metrics ≤ 3 h old.
             
-            Analytical Framework:
-            - Timeframes: 1m, 15m, 1h, 4h, 1d, 1w, 1M
-            - Required Technical Indicators: EMA, SMA, RSI, MACD, Bollinger Bands, ATR, OBV, VWAP, VOL
-            - Optional Indicators (upon user request):
-              - Chaikin Money Flow (CMF)
-              - Money Flow Index (MFI)
-              - Ichimoku Cloud
-              - Fear and Greed Index
+            OUTPUT FORMAT
+            Write short bullet lines grouped under the six headers below.
+            Start every bullet with the UPPER-CASE tag shown (easy downstream parsing).
+            Omit any header that truly has nothing material—do not pad with trivia.
             
-            Sources for Sentiment Analysis and News:
-            - CryptoPanic, Whale Alert
-            - Twitter (major crypto accounts and influential analysts)
-            - Reddit (r/CryptoCurrency, r/BitcoinMarkets)
-            - Press releases from the Fed, White House, European Union
-            
-            News Themes and Filters:
-            - Significant ("Whale") Transactions
-            - US Policy (FOMC, CPI, tariffs, sanctions)
-            - EU Policy (crypto regulations, ECB announcements)
-            
-            Forecast Horizons and Approach:
-            - Short-Term forecasts (up to 7 days): prioritize technical analysis and current market sentiment.
-            - Mid-Term forecasts (3–6 months): incorporate macroeconomic context and fundamental developments.
-            
-            Cover:
-            • Price— spot price, 24-h %s and 7-d %s
-            • Volume— 24-h trading volume and its trend
-            • Market cap & circulating supply
-            • Key technicals— RSI, MACD, 20 / 50 / 200-day SMA, major support & resistance
-            • Derivatives— funding rate, open interest
-            • On-chain activity— active addresses, exchange inflows/outflows, large-holder (whale) moves
-            • Sentiment gauges— Crypto Fear & Greed, social-media sentiment score
-            • Recent catalysts (past 24 h)— news, regulatory actions, network upgrades, ETF flows
+            HEADERS
+            PRICE & VOLUME        (tags: PRICE:, VOL:)
+            DERIVATIVES           (FUNDING:, OI:)
+            ON-CHAIN              (INFLOW:, OUTFLOW:, WHALE:)
+            TECHNICAL HIGHLIGHTS  (RSI:, MACD:, S/R:, BBW:, etc.)
+            SENTIMENT             (FEAR_GREED:, TWITTER:, REDDIT:, etc.)
+            NEWS & MACRO          (NEWS:, MACRO:, WHALE_TX:, POLICY:)
             """;
 
     public String getGptInternetSearch(String coin) {
