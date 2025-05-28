@@ -11,6 +11,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortKey;
 
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.UUID;
 
@@ -28,6 +29,7 @@ public class SignalHistory {
     private String reason;
     private int confidence;
     private ZonedDateTime date;
+    private long timestamp;
 
     public SignalHistory(Signal signal, String userId) {
         this.id = UUID.randomUUID().toString();
@@ -36,7 +38,8 @@ public class SignalHistory {
         this.action = signal.getAction();
         this.reason = signal.getReason();
         this.confidence = signal.getConfidence();
-        this.date = ZonedDateTime.now();
+        this.date = ZonedDateTime.now(ZoneOffset.UTC);
+        this.timestamp = ZonedDateTime.now(ZoneOffset.UTC).toEpochSecond();
     }
 
 
@@ -73,5 +76,10 @@ public class SignalHistory {
     @DynamoDbAttribute("date")
     public ZonedDateTime getDate() {
         return date;
+    }
+
+    @DynamoDbAttribute("timestamp")
+    public long getTimestamp() {
+        return timestamp;
     }
 }

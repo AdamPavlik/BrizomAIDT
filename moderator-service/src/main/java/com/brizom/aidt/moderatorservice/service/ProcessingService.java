@@ -105,6 +105,7 @@ public class ProcessingService {
                 .orElse(BigDecimal.ZERO);
 
         if (freeQuoteAsset.compareTo(BigDecimal.ZERO) <= 0) {
+            log.warn("No free quote asset for user {} for symbol {}, free quote asset: {}, skipping coin buying: {}", setting.getUserId(), symbol, freeQuoteAsset, signal.getCoin());
             return Optional.empty();
         } else {
             freeQuoteAsset = freeQuoteAsset.multiply(BigDecimal.valueOf(setting.getBalanceUtilization())).divide(BigDecimal.valueOf(100), 2, RoundingMode.DOWN);
@@ -124,6 +125,7 @@ public class ProcessingService {
             if (freeQuoteAsset.compareTo(minNotional) >= 0) {
                 amountQuoteAsset = minNotional;
             } else {
+                log.warn("Not enough quote asset for user {} for symbol {}, free quote asset: {}, min notional: {}, amount quote asset: {}", setting.getUserId(), symbol, freeQuoteAsset, minNotional, amountQuoteAsset);
                 return Optional.empty();
             }
         }
@@ -147,6 +149,7 @@ public class ProcessingService {
                 .orElse(BigDecimal.ZERO);
 
         if (freeBase.compareTo(BigDecimal.ZERO) <= 0) {
+            log.warn("No free base asset for user {} for symbol {}, free base asset: {}, skipping coin selling: {}", setting.getUserId(), symbol, freeBase, signal.getCoin());
             return Optional.empty();
         }
 
@@ -168,6 +171,7 @@ public class ProcessingService {
             if (freeBase.compareTo(minQty) >= 0) {
                 qty = minQty;
             } else {
+                log.warn("Not enough base asset for user {} for symbol {}, free base asset: {}, min lot size: {}, qty: {}", setting.getUserId(), symbol, freeBase, minQty, qty);
                 return Optional.empty();
             }
         }

@@ -31,6 +31,7 @@ public class OrderHistory {
     private Double quantity;
     private Double quoteOrderQty;
     private ZonedDateTime date;
+    private long timestamp;
 
 
     public OrderHistory(Order order, String userId) {
@@ -42,6 +43,7 @@ public class OrderHistory {
         this.quantity = order.getQuantity();
         this.quoteOrderQty = order.getQuoteOrderQty();
         this.date = ZonedDateTime.now(ZoneOffset.UTC);
+        this.timestamp = ZonedDateTime.now(ZoneOffset.UTC).toEpochSecond();
     }
 
     @DynamoDbPartitionKey
@@ -77,5 +79,15 @@ public class OrderHistory {
     @DynamoDbAttribute("quoteOrderQty")
     public Double getQuoteOrderQty() {
         return quoteOrderQty;
+    }
+
+    @DynamoDbAttribute("date")
+    public ZonedDateTime getDate() {
+        return date;
+    }
+
+    @DynamoDbAttribute("timestamp")
+    public long getTimestamp() {
+        return timestamp;
     }
 }
