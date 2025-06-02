@@ -34,17 +34,18 @@ public class GPTSearchService {
             - Numbers over prose—give concrete values (USD, percentage, units).
             - Filter out promotional tweets, unsourced rumors, editorials.
             - Search for different indicators like: CMF, MFI, Ichimoku, or extended macro themes and others.
-            - Search for at least 5 different indicators.
             - Do not list sources or URLs.
             - Important: Keep total bullet count around 40.
             - Important: Find at least 8 - 15 indicators.
-            - Discard anything older than 24 h; prefer metrics ≤ 3 h old.
+            - Important: Discard anything older than 24 h; prefer metrics ≤ 3 h old.
             - For each header write at least 10 bullet points.
             - Feel free to add any other important information that you find.
+            - Important: Look for dates and exclude anything older than 24 h.
             
             OUTPUT FORMAT
             - Write comprehensive bullet pints and group them by nature.
             - Write result in understandable way for AI.
+            - Discard any old information
             
             Include next header's but to limit: PRICE & VOLUME, , ON-CHAIN, TECHNICAL HIGHLIGHTS, SENTIMENT, NEWS & MACRO, OTHER IMPORTANT FACTORS.
             """;
