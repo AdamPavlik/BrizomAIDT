@@ -36,6 +36,7 @@ public class GPTService {
     private final BinanceService binanceService;
     private final SQSService sqsService;
     private final GPTSearchService gptSearchService;
+    private final DeepResearchService deepResearchService;
 
     public void generateSignals(Setting setting, List<Coin> coins) {
         log.info("Generating signals for user {} with setting {}", setting.getUserId(), setting);
@@ -48,7 +49,7 @@ public class GPTService {
             log.info("No prompts found for user {} or no coins to generate signals for", setting.getUserId());
             return;
         }
-        getPromptsFromGPTSearch(prompts, targetedCoins, setting);
+        getPromptsFromGPTDeepResearch(prompts, targetedCoins, setting);
         getPromptsFromBinance(prompts, targetedCoins, setting);
 
         log.info("All Prompts: {}", prompts);
@@ -98,14 +99,8 @@ public class GPTService {
                 .toList());
     }
 
-    private void getPromptsFromGPTSearch(List<Prompt> prompts, List<Coin> coins, Setting setting) {
-        coins.forEach(coin -> {
-            log.info("Generating prompt for coin {} for user: {}", coin, setting.getUserId());
-            String title = "Crypto analysis for: " + coin + "\n";
-            String prompt = title + gptSearchService.getGptInternetSearch(coin.getSymbol());
-            log.info("Generated prompt: {}, for coin: {}, for user: {}", prompt, coin.getSymbol(), setting.getUserId());
-            prompts.add(Prompt.builder().prompt(prompt).role(PromptRole.USER).build());
-        });
+    private void getPromptsFromGPTDeepResearch(List<Prompt> prompts, List<Coin> coins, Setting setting) {
+        prompts.add(Prompt.builder().prompt(deepResearchService.deepResearch(coins)).role(PromptRole.USER).build());
     }
 
 
