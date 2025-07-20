@@ -1,5 +1,6 @@
 package com.brizom.aidt.gptservice.service;
 
+import com.brizom.aidt.gptservice.dto.KickoffEvent;
 import com.brizom.aidt.gptservice.dto.Signals;
 import com.google.gson.Gson;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,9 @@ public class SQSService {
     @Value("${aws.sqs.queue.name.signals}")
     private String signalsQueueUrl;
 
+    @Value("${aws.sqs.queue.name.gpt}")
+    private String gptQueueUrl;
+
     private final SqsClient sqsClient;
     private final Gson gson;
 
@@ -29,7 +33,18 @@ public class SQSService {
                 .messageBody(gson.toJson(signals))
                 .build();
         val response = sqsClient.sendMessage(request);
-        log.info("SQS result - {}}", response);
+        log.info("SQS Signals result - {}", response);
+    }
+
+    public void sendKickoffEven(KickoffEvent kickoffEvent, int delaySeconds) {
+        log.info("Sending a kickoff event to SQS: {}", kickoffEvent);
+        val request = SendMessageRequest.builder()
+                .queueUrl(gptQueueUrl)
+                .messageBody(gson.toJson(kickoffEvent))
+                .delaySeconds(delaySeconds)
+                .build();
+        val response = sqsClient.sendMessage(request);
+        log.info("SQS KickoffEvent result - {}", response);
     }
 
 

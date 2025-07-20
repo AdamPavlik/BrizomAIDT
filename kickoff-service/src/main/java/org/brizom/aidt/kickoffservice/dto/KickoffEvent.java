@@ -16,4 +16,5 @@ import java.util.List;
 public class KickoffEvent {
     private Setting setting;
     private List<Coin> coins;
+    private Metadata metadata;
 }

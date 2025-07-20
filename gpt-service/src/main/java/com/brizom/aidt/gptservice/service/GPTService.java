@@ -35,10 +35,8 @@ public class GPTService {
     private final PromptRepository promptRepository;
     private final BinanceService binanceService;
     private final SQSService sqsService;
-    private final GPTSearchService gptSearchService;
-    private final DeepResearchService deepResearchService;
 
-    public void generateSignals(Setting setting, List<Coin> coins) {
+    public void generateSignals(Setting setting, List<Coin> coins, String deepResearch) {
         log.info("Generating signals for user {} with setting {}", setting.getUserId(), setting);
         val targetedCoins = coins.stream().filter(Coin::isGenerateSignal).toList();
         log.info("Targeted coins: {}", targetedCoins);
@@ -49,7 +47,7 @@ public class GPTService {
             log.info("No prompts found for user {} or no coins to generate signals for", setting.getUserId());
             return;
         }
-        getPromptsFromGPTDeepResearch(prompts, targetedCoins, setting);
+        prompts.add(Prompt.builder().prompt(deepResearch).role(PromptRole.USER).build());
         getPromptsFromBinance(prompts, targetedCoins, setting);
 
         log.info("All Prompts: {}", prompts);
@@ -98,10 +96,5 @@ public class GPTService {
                 .filter(prompt -> !Strings.isBlank(prompt.getPrompt()))
                 .toList());
     }
-
-    private void getPromptsFromGPTDeepResearch(List<Prompt> prompts, List<Coin> coins, Setting setting) {
-        prompts.add(Prompt.builder().prompt(deepResearchService.deepResearch(coins)).role(PromptRole.USER).build());
-    }
-
 
 }

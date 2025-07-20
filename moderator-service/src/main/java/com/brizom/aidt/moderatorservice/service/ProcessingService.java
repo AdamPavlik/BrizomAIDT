@@ -199,8 +199,12 @@ public class ProcessingService {
 
     private void sendSignalsEmails(List<Signal> signals, Setting setting, Map<String, Coin> coinsMap) {
         if (setting.isSendEmails()) {
-            sesService.sendSignalsEmails(signals.stream().filter(signal -> coinsMap.get(signal.getCoin()).isSendEmail()).toList(), setting.getEmail());
+            sesService.sendSignalsEmails(signals.stream().filter(signal -> coinsMap.get(signal.getCoin()).isSendEmail()).toList(), parseEmails(setting));
         }
+    }
+
+    private String[] parseEmails(Setting setting) {
+        return setting.getEmail().split(",");
     }
 
 

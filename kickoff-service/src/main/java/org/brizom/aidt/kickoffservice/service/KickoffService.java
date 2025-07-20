@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.brizom.aidt.kickoffservice.dto.AIProvider;
 import org.brizom.aidt.kickoffservice.dto.KickoffEvent;
+import org.brizom.aidt.kickoffservice.dto.Metadata;
 import org.brizom.aidt.kickoffservice.model.Coin;
 import org.brizom.aidt.kickoffservice.repository.CoinRepository;
 import org.brizom.aidt.kickoffservice.repository.SettingRepository;
@@ -34,7 +35,7 @@ public class KickoffService {
                     log.info("No coins found for user: {}", setting.getUserId());
                     return;
                 }
-                KickoffEvent event = KickoffEvent.builder().setting(setting).coins(coins).build();
+                KickoffEvent event = KickoffEvent.builder().setting(setting).coins(coins).metadata(new Metadata()).build();
                 if (AIProvider.GPT.equals(setting.getAiProvider())) {
                     log.info("Sending GPT message to SQS: {}", event);
                     sqsService.sendMessage(event);

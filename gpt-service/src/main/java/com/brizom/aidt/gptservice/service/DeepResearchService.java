@@ -22,7 +22,7 @@ public class DeepResearchService {
 
     private final OpenAIClient client;
 
-    public String deepResearch(List<Coin> coins) {
+    public String startDeepResearchOnBackground(List<Coin> coins) {
         log.info("Starting deep research for coins {}", coins);
         WebSearchTool webSearchTool = WebSearchTool.builder()
                 .type(WebSearchTool.Type.WEB_SEARCH_PREVIEW)
@@ -34,17 +34,17 @@ public class DeepResearchService {
                 .addTool(webSearchTool).model(ResponsesModel.ResponsesOnlyModel.O3_DEEP_RESEARCH)
                 .instructions(buildInstructions(coins))
                 .input(prompt)
+                .background(true)
                 .build();
 
-        String deepResearchResult = client.responses().create(params).output().stream()
-                .filter(responseOutputItem -> responseOutputItem.message().isPresent())
-                .map(ResponseOutputItem::asMessage)
-                .flatMap(responseOutputMessage -> responseOutputMessage.content().stream())
-                .map(ResponseOutputMessage.Content::asOutputText)
-                .map(ResponseOutputText::text)
-                .collect(Collectors.joining(","));
-        log.info("Deep research result: {}", deepResearchResult);
-        return deepResearchResult;
+        String id = client.responses().create(params).id();
+        log.info("Deep research id: {}", id);
+        return id;
+    }
+
+
+    public Response retrieveDeepResearch(String deepResearchId) {
+        return client.responses().retrieve(deepResearchId);
     }
 
     private String buildInstructions(List<Coin> coins) {
@@ -78,5 +78,16 @@ public class DeepResearchService {
         return instructions;
     }
 
+    public String mupToString(Response response) {
+        String deepResearch = response.output().stream()
+                .filter(responseOutputItem -> responseOutputItem.message().isPresent())
+                .map(ResponseOutputItem::asMessage)
+                .flatMap(responseOutputMessage -> responseOutputMessage.content().stream())
+                .map(ResponseOutputMessage.Content::asOutputText)
+                .map(ResponseOutputText::text)
+                .collect(Collectors.joining(","));
+        log.info("Deep research result: {}", deepResearch);
+        return deepResearch;
+    }
 
 }

@@ -5,16 +5,12 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class KickoffEvent {
+public class Metadata {
 
-    private Setting setting;
-    private List<Coin> coins;
-    private Metadata metadata;
+    private String deepResearchId;
 
 }
